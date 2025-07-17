@@ -382,6 +382,8 @@ const Index = () => {
                     </div>
                   </div>
 
+                  {/* Content Ad between form sections */}
+                  <AdBanner position="content" />
                   <Button 
                     onClick={handleCreatePaste}
                     disabled={isCreating}
