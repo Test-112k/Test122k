@@ -326,7 +326,7 @@ const PasteView = () => {
                   <div className="text-center">
                     <Avatar className="w-16 h-16 mx-auto mb-3">
                       <AvatarImage 
-                        src={authorProfile?.photoURL || paste.authorName} 
+                        src={authorProfile?.photoURL} 
                         alt={paste.authorName || 'Author'} 
                       />
                       <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
