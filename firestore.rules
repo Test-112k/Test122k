@@ -37,5 +37,10 @@ service cloud.firestore {
       // Allow admins and moderators to read/update reports
       allow read, update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator'];
     }
+    
+    match /userStats/{document} {
+      // Allow anyone to read/write user stats (for view counts, achievements, etc.)
+      allow read, write: if true;
+    }
   }
 }

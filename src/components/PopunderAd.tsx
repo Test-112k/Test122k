@@ -15,8 +15,8 @@ const PopunderAd = () => {
         }
       }
       
-      // Show ad only if count is less than 2 for today
-      if (adData.count < 2) {
+      // Show ad only if count is less than 1 for today (limit to once per day)
+      if (adData.count < 1) {
         // Load the popunder script
         const script = document.createElement('script');
         script.type = 'text/javascript';
