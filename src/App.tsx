@@ -16,6 +16,7 @@ import Recent from "./pages/Recent";
 import RawView from "./pages/RawView";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import PopunderAd from "./components/PopunderAd";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PopunderAd />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
