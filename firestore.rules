@@ -1,0 +1,41 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /pastes/{document} {
+      // Allow anyone to read any paste document (including private ones via URL)
+      allow read: if true;
+      
+      // Allow anyone to create pastes (both authenticated and anonymous users)
+      allow create: if true;
+      
+      // Allow anyone to update pastes (for view counts, etc.)
+      allow update: if true;
+      
+      // Allow users to delete their own pastes, or admins to delete any paste
+      allow delete: if true;
+    }
+    
+    match /users/{document} {
+      allow read: if request.auth != null && (request.auth.uid == resource.id || resource.data.role == 'admin' || resource.data.role == 'moderator');
+      allow write: if request.auth != null && request.auth.uid == resource.id;
+      // Allow admins to read/write any user document
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /templates/{document} {
+      // Allow users to read, create, update, and delete their own templates
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow admins to read/delete any template
+      allow read, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /reports/{document} {
+      // Allow authenticated users to create reports
+      allow create: if request.auth != null;
+      // Allow admins and moderators to read/update reports
+      allow read, update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator'];
+    }
+  }
+}

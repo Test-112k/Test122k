@@ -1,0 +1,261 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  .dark {
+    --background: 220 13% 8%;
+    --foreground: 220 13% 95%;
+    --card: 220 13% 10%;
+    --card-foreground: 220 13% 95%;
+    --popover: 220 13% 10%;
+    --popover-foreground: 220 13% 95%;
+    --primary: 270 95% 75%;
+    --primary-foreground: 220 13% 8%;
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 220 13% 95%;
+    --muted: 220 13% 12%;
+    --muted-foreground: 220 13% 70%;
+    --accent: 330 81% 60%;
+    --accent-foreground: 220 13% 95%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 220 13% 95%;
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 270 95% 75%;
+    --sidebar-background: 220 13% 8%;
+    --sidebar-foreground: 220 13% 95%;
+    --sidebar-primary: 270 95% 75%;
+    --sidebar-primary-foreground: 220 13% 8%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 220 13% 95%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 270 95% 75%;
+  }
+
+  :root {
+    --background: 220 13% 8%;
+    --foreground: 220 13% 95%;
+    --card: 220 13% 10%;
+    --card-foreground: 220 13% 95%;
+    --popover: 220 13% 10%;
+    --popover-foreground: 220 13% 95%;
+    --primary: 270 95% 75%;
+    --primary-foreground: 220 13% 8%;
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 220 13% 95%;
+    --muted: 220 13% 12%;
+    --muted-foreground: 220 13% 70%;
+    --accent: 330 81% 60%;
+    --accent-foreground: 220 13% 95%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 220 13% 95%;
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 270 95% 75%;
+    --radius: 0.5rem;
+    --sidebar-background: 220 13% 8%;
+    --sidebar-foreground: 220 13% 95%;
+    --sidebar-primary: 270 95% 75%;
+    --sidebar-primary-foreground: 220 13% 8%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 220 13% 95%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 270 95% 75%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html {
+    @apply bg-background;
+  }
+}
+
+/* Animation keyframes */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+  }
+}
+
+/* Admin - Red Aura */
+@keyframes pulse-glow-red {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 30px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Legendary - Purple Aura */
+@keyframes pulse-glow-purple {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.6);
+  }
+}
+
+/* Viral - Golden Aura */
+@keyframes pulse-glow-gold {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.6), 0 0 20px rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(250, 204, 21, 0.8), 0 0 30px rgba(250, 204, 21, 0.6);
+  }
+}
+
+/* Popular - Orange Aura */
+@keyframes pulse-glow-orange {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(251, 146, 60, 0.6), 0 0 20px rgba(251, 146, 60, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(251, 146, 60, 0.8), 0 0 30px rgba(251, 146, 60, 0.6);
+  }
+}
+
+/* Active - Blue Aura */
+@keyframes pulse-glow-blue {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* Creator - Green Aura */
+@keyframes pulse-glow-green {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.6), 0 0 20px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 30px rgba(34, 197, 94, 0.6);
+  }
+}
+
+/* Rainbow effect for supreme achievements */
+@keyframes rainbow-glow {
+  0% {
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  16.66% {
+    text-shadow: 0 0 10px rgba(251, 146, 60, 0.6), 0 0 20px rgba(251, 146, 60, 0.4);
+  }
+  33.33% {
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.6), 0 0 20px rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.6), 0 0 20px rgba(34, 197, 94, 0.4);
+  }
+  66.66% {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+  83.33% {
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+}
+
+/* Animation classes */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out;
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.pulse-glow-red {
+  animation: pulse-glow-red 2s infinite;
+}
+
+.pulse-glow-purple {
+  animation: pulse-glow-purple 2s infinite;
+}
+
+.pulse-glow-gold {
+  animation: pulse-glow-gold 2s infinite;
+}
+
+.pulse-glow-orange {
+  animation: pulse-glow-orange 2s infinite;
+}
+
+.pulse-glow-blue {
+  animation: pulse-glow-blue 2s infinite;
+}
+
+.pulse-glow-green {
+  animation: pulse-glow-green 2s infinite;
+}
+
+.rainbow-glow {
+  animation: rainbow-glow 3s infinite;
+}
