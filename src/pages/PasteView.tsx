@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -325,7 +326,7 @@ const PasteView = () => {
                   <div className="text-center">
                     <Avatar className="w-16 h-16 mx-auto mb-3">
                       <AvatarImage 
-                        src={authorProfile?.photoURL} 
+                        src={authorProfile?.photoURL || paste.authorName} 
                         alt={paste.authorName || 'Author'} 
                       />
                       <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
@@ -337,7 +338,7 @@ const PasteView = () => {
                     </div>
                   </div>
                   
-                  {/* Show bio for all users including guests */}
+                  {/* Show bio for everyone */}
                   {authorProfile?.bio && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Bio</h4>
@@ -345,7 +346,7 @@ const PasteView = () => {
                     </div>
                   )}
                   
-                  {/* Show full URLs for all users including guests */}
+                  {/* Show social links for everyone */}
                   {(authorProfile?.website || authorProfile?.telegram || authorProfile?.discord) && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Links</h4>
