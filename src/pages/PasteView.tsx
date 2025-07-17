@@ -461,14 +461,8 @@ const PasteView = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <div className="relative">
-                    <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm font-mono max-h-[70vh]">
-                      <code className="text-foreground">{paste.content}</code>
-                    </pre>
-                  </div>
-                  
-                  {/* Mobile buttons - placed under the paste content */}
-                  <div className="sm:hidden flex flex-col gap-2 mt-4">
+                  {/* Mobile buttons - placed above the paste content */}
+                  <div className="sm:hidden flex flex-col gap-2 mb-4">
                     <Button variant="outline" size="sm" onClick={copyContent} className="border-border text-foreground hover:bg-muted w-full">
                       <Copy className="h-4 w-4 mr-2" />
                       Copy Text
@@ -501,6 +495,12 @@ const PasteView = () => {
                       <Flag className="h-4 w-4 mr-2" />
                       {isReporting ? 'Reporting...' : 'Report'}
                     </Button>
+                  </div>
+                  
+                  <div className="relative">
+                    <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm font-mono max-h-[70vh]">
+                      <code className="text-foreground">{paste.content}</code>
+                    </pre>
                   </div>
                 </CardContent>
               </Card>
