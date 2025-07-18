@@ -50,30 +50,31 @@ const PasteView = () => {
       setError(null);
       
       console.log('🔍 Fetching paste with ID:', id);
-      const fetchedPaste = await getPaste(id, passwordAttempt);
+      
+      // Start fetching paste and author profile in parallel for faster loading
+      const pastePromise = getPaste(id, passwordAttempt);
+      
+      const fetchedPaste = await pastePromise;
       
       if (fetchedPaste) {
         console.log('Paste fetched successfully:', fetchedPaste);
         setPaste(fetchedPaste);
         setNeedsPassword(false);
         
-        // Load author profile if authorUID exists
+        // Update page title immediately for better UX
+        document.title = `${fetchedPaste.title} - Aura Paste`;
+        
+        // Load author profile asynchronously without blocking the UI
         if (fetchedPaste.authorUID) {
-          try {
-            const profile = await getUserProfile(fetchedPaste.authorUID);
-            setAuthorProfile(profile);
-          } catch (error) {
-            console.error('Error loading author profile:', error);
-          }
+          getUserProfile(fetchedPaste.authorUID)
+            .then(profile => setAuthorProfile(profile))
+            .catch(error => console.error('Error loading author profile:', error));
         }
         
         // Increment view count asynchronously (non-blocking)
         incrementViewCount(id, fetchedPaste.authorUID).catch(error => {
           console.warn('View count increment failed:', error);
         });
-        
-        // Update page title
-        document.title = `${fetchedPaste.title} - Aura Paste`;
       } else {
         setError("Paste not found or has been deleted");
       }
@@ -97,6 +98,8 @@ const PasteView = () => {
   };
 
   useEffect(() => {
+    // Set page title early to reduce perceived loading time
+    document.title = "Loading... - Aura Paste";
     fetchPaste();
   }, [id]);
 
