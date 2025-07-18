@@ -77,12 +77,10 @@ const Index = () => {
         description: "Your paste has been created successfully.",
       });
 
-      // Redirect to dashboard if user is logged in to see the new paste
-      if (currentUser) {
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      }
+      // Redirect to the created paste to view it
+      setTimeout(() => {
+        navigate(`/paste/${paste.id}`);
+      }, 1500);
     } catch (error: any) {
       console.error('❌ Error creating paste from UI:', error);
       

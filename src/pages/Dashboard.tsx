@@ -134,6 +134,14 @@ const Dashboard = () => {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => navigate(`/paste/${paste.id}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handlePasteEdit(paste.id)}
                             >
                               Edit
