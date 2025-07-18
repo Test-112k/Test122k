@@ -38,13 +38,18 @@ const PasteView = () => {
   }, []);
 
   const fetchPaste = async (passwordAttempt?: string) => {
-    if (!id) return;
+    if (!id) {
+      console.log('❌ No paste ID provided');
+      setError("Invalid paste URL");
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching paste with ID:', id);
+      console.log('🔍 Fetching paste with ID:', id);
       const fetchedPaste = await getPaste(id, passwordAttempt);
       
       if (fetchedPaste) {
