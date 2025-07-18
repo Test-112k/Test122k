@@ -174,7 +174,7 @@ const Index = () => {
             <div className="text-center mb-8 lg:mb-12 animate-fade-in">
               <div className="flex items-center justify-center mb-4">
                 <img 
-                  src="/lovable-uploads/8289d881-3e57-4f96-b277-7a90d7f2f6ef.png" 
+                  src="/lovable-uploads/da06e921-613d-4e50-9f0a-6686c24c508d.png" 
                   alt="AuraPaste Logo" 
                   className="h-16 md:h-24 lg:h-32 w-auto"
                 />
