@@ -45,16 +45,15 @@ const PasteView = () => {
       return;
     }
     
+    let hasIncrementedView = false;
+    
     try {
       setLoading(true);
       setError(null);
       
       console.log('🔍 Fetching paste with ID:', id);
       
-      // Start fetching paste and author profile in parallel for faster loading
-      const pastePromise = getPaste(id, passwordAttempt);
-      
-      const fetchedPaste = await pastePromise;
+      const fetchedPaste = await getPaste(id, passwordAttempt);
       
       if (fetchedPaste) {
         console.log('Paste fetched successfully:', fetchedPaste);
@@ -64,17 +63,24 @@ const PasteView = () => {
         // Update page title immediately for better UX
         document.title = `${fetchedPaste.title} - Aura Paste`;
         
-        // Load author profile asynchronously without blocking the UI
+        // Load author profile asynchronously without blocking the UI - no auth required
         if (fetchedPaste.authorUID) {
           getUserProfile(fetchedPaste.authorUID)
-            .then(profile => setAuthorProfile(profile))
+            .then(profile => {
+              console.log('Author profile loaded:', profile);
+              setAuthorProfile(profile);
+            })
             .catch(error => console.error('Error loading author profile:', error));
         }
         
-        // Increment view count asynchronously (non-blocking)
-        incrementViewCount(id, fetchedPaste.authorUID).catch(error => {
-          console.warn('View count increment failed:', error);
-        });
+        // Increment view count only once per successful fetch
+        if (!hasIncrementedView) {
+          hasIncrementedView = true;
+          console.log('🔢 Incrementing view count for paste:', id);
+          incrementViewCount(id, fetchedPaste.authorUID).catch(error => {
+            console.warn('View count increment failed:', error);
+          });
+        }
       } else {
         setError("Paste not found or has been deleted");
       }
@@ -86,10 +92,8 @@ const PasteView = () => {
         setError(null);
       } else if (error.message === 'This paste has expired') {
         setError("This paste has expired and is no longer available.");
-      } else if (error.message.includes('permission-denied') || error.message.includes('permissions')) {
-        setError("You don't have permission to view this paste. It may be private or deleted.");
       } else {
-        setError(error.message || "Failed to load paste. The paste may be private, expired, or deleted.");
+        setError(error.message || "Failed to load paste. The paste may be expired or deleted.");
       }
     } finally {
       setLoading(false);
@@ -335,18 +339,22 @@ const PasteView = () => {
                     <Avatar className="w-16 h-16 mx-auto mb-3">
                       <AvatarImage 
                         src={authorProfile?.photoURL} 
-                        alt={paste.authorName || 'Author'} 
+                        alt={paste?.authorName || 'Author'} 
                       />
                       <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                        {paste.authorName ? paste.authorName.charAt(0).toUpperCase() : '?'}
+                        {paste?.authorName ? paste.authorName.charAt(0).toUpperCase() : '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-lg font-semibold text-foreground mb-3">
-                      <UserNameWithAchievements userId={paste.authorUID} userName={paste.authorName} />
+                      {paste?.authorUID ? (
+                        <UserNameWithAchievements userId={paste.authorUID} userName={paste.authorName} />
+                      ) : (
+                        <span>{paste?.authorName}</span>
+                      )}
                     </div>
                   </div>
                   
-                  {/* Show bio for everyone */}
+                  {/* Show bio for everyone - no auth required */}
                   {authorProfile?.bio && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Bio</h4>
@@ -354,7 +362,7 @@ const PasteView = () => {
                     </div>
                   )}
                   
-                  {/* Show social links for everyone */}
+                  {/* Show social links for everyone - no auth required */}
                   {(authorProfile?.website || authorProfile?.telegram || authorProfile?.discord) && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Links</h4>
@@ -391,7 +399,7 @@ const PasteView = () => {
                   <div className="pt-4 border-t border-border">
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <div>Created: {(() => {
-                        if (!paste.createdAt) return 'Unknown date';
+                        if (!paste?.createdAt) return 'Unknown date';
                         try {
                           // Handle Firebase Timestamp
                           if (paste.createdAt && typeof paste.createdAt === 'object' && paste.createdAt.toDate) {
@@ -406,12 +414,12 @@ const PasteView = () => {
                           return 'Unknown date';
                         }
                       })()}</div>
-                      <div>Language: <span className="capitalize">{paste.language}</span></div>
-                      <div>Views: {paste.viewCount}</div>
-                      {paste.expiresAt && (
+                      <div>Language: <span className="capitalize">{paste?.language}</span></div>
+                      <div>Views: {paste?.viewCount || 0}</div>
+                      {paste?.expiresAt && (
                         <div>Expires: {new Date(paste.expiresAt).toLocaleDateString()}</div>
                       )}
-                      {paste.isPasswordProtected && (
+                      {paste?.isPasswordProtected && (
                         <div className="text-yellow-500 flex items-center gap-1">
                           <Lock className="h-3 w-3" />
                           <span>Protected</span>

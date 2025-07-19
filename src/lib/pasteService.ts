@@ -1,4 +1,3 @@
-
 import { db } from './firebase';
 import { collection, doc, setDoc, getDoc, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { User } from 'firebase/auth';
@@ -193,42 +192,6 @@ export const getPaste = async (pasteId: string, password?: string): Promise<Past
     };
   } catch (error: any) {
     console.error('Error fetching paste:', error);
-    
-    // Handle Firestore permission errors - allow private pastes to be viewed via URL
-    if (error.code === 'permission-denied') {
-      // Try to fetch the paste anyway for private pastes accessed via URL
-      try {
-        const pasteDoc = await getDoc(doc(db, 'pastes', pasteId));
-        if (pasteDoc.exists()) {
-          const paste = pasteDoc.data() as Paste;
-          paste.content = decryptContent(paste.content);
-          
-          // Check expiry and password protection
-          if (paste.expiresAt && new Date(paste.expiresAt) <= new Date()) {
-            throw new Error('This paste has expired');
-          }
-          
-          if (paste.isPasswordProtected && paste.password) {
-            if (!password || password !== paste.password) {
-              throw new Error('Password required to view this paste');
-            }
-          }
-          
-          return {
-            ...paste,
-            id: pasteId,
-            viewCount: paste.viewCount || 0,
-            url: `${window.location.origin}/p/${pasteId}`,
-            authorName: paste.authorName || 'Anonymous'
-          };
-        }
-      } catch (retryError) {
-        console.error('Retry failed:', retryError);
-      }
-      
-      throw new Error('You don\'t have permission to view this paste. It may be private or deleted.');
-    }
-    
     throw error;
   }
 };
@@ -483,6 +446,8 @@ export const updatePaste = async (pasteId: string, updateData: {
 
 export const incrementViewCount = async (pasteId: string, authorUID?: string | null): Promise<void> => {
   try {
+    console.log('Incrementing view count for paste:', pasteId, 'author:', authorUID);
+    
     const pasteRef = doc(db, 'pastes', pasteId);
     
     // Increment the view count
@@ -490,14 +455,19 @@ export const incrementViewCount = async (pasteId: string, authorUID?: string | n
       viewCount: increment(1)
     });
     
+    console.log('✅ View count incremented successfully for paste:', pasteId);
+    
     // Update user stats if author exists
     if (authorUID) {
-      await updateUserStats(authorUID, 1);
+      try {
+        await updateUserStats(authorUID, 1);
+        console.log('✅ User stats updated for author:', authorUID);
+      } catch (error) {
+        console.warn('Failed to update user stats:', error);
+      }
     }
-    
-    console.log('View count incremented for paste:', pasteId);
   } catch (error) {
-    console.error('Error incrementing view count:', error);
+    console.error('❌ Error incrementing view count:', error);
     // Don't throw error to prevent disrupting the main flow
   }
 };
