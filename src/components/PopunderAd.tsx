@@ -1,22 +1,15 @@
+
 import { useEffect } from 'react';
 
 const PopunderAd = () => {
   useEffect(() => {
     const checkAndShowAd = () => {
-      const today = new Date().toDateString();
-      const storedData = localStorage.getItem('popunder_ad_data');
+      // Use sessionStorage instead of localStorage for session-based limiting
+      const sessionKey = 'popunder_ad_shown';
+      const hasShownInSession = sessionStorage.getItem(sessionKey);
       
-      let adData = { date: today, count: 0 };
-      
-      if (storedData) {
-        const parsed = JSON.parse(storedData);
-        if (parsed.date === today) {
-          adData = parsed;
-        }
-      }
-      
-      // Show ad only if count is less than 1 for today (limit to once per day)
-      if (adData.count < 1) {
+      // Show ad only if not shown in current session
+      if (!hasShownInSession) {
         // Load the popunder script
         const script = document.createElement('script');
         script.type = 'text/javascript';
@@ -24,9 +17,13 @@ const PopunderAd = () => {
         script.async = true;
         
         script.onload = () => {
-          // Increment count after successful load
-          adData.count += 1;
-          localStorage.setItem('popunder_ad_data', JSON.stringify(adData));
+          // Mark as shown for this session
+          sessionStorage.setItem(sessionKey, 'true');
+          console.log('🎯 Popunder ad loaded and marked for session');
+        };
+        
+        script.onerror = () => {
+          console.error('❌ Failed to load popunder ad script');
         };
         
         document.head.appendChild(script);
@@ -37,6 +34,8 @@ const PopunderAd = () => {
             document.head.removeChild(script);
           }
         };
+      } else {
+        console.log('🚫 Popunder ad already shown in this session');
       }
     };
     

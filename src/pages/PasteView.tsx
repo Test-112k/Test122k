@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ const PasteView = () => {
   const [password, setPassword] = useState("");
   const [needsPassword, setNeedsPassword] = useState(false);
   const [verifyingPassword, setVerifyingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [authorProfile, setAuthorProfile] = useState<any>(null);
   const { toast } = useToast();
@@ -50,6 +50,7 @@ const PasteView = () => {
     try {
       setLoading(true);
       setError(null);
+      setPasswordError(false);
       
       console.log('🔍 Fetching paste with ID:', id);
       
@@ -59,6 +60,7 @@ const PasteView = () => {
         console.log('Paste fetched successfully:', fetchedPaste);
         setPaste(fetchedPaste);
         setNeedsPassword(false);
+        setPasswordError(false);
         
         // Update page title immediately for better UX
         document.title = `${fetchedPaste.title} - Aura Paste`;
@@ -90,6 +92,9 @@ const PasteView = () => {
       if (error.message === 'Password required to view this paste') {
         setNeedsPassword(true);
         setError(null);
+        if (passwordAttempt) {
+          setPasswordError(true);
+        }
       } else if (error.message === 'This paste has expired') {
         setError("This paste has expired and is no longer available.");
       } else {
@@ -120,14 +125,6 @@ const PasteView = () => {
 
     setVerifyingPassword(true);
     await fetchPaste(password);
-    
-    if (needsPassword) {
-      toast({
-        title: "Error",
-        description: "Incorrect password. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   const copyContent = async () => {
@@ -273,6 +270,11 @@ const PasteView = () => {
                       disabled={verifyingPassword}
                       className="bg-input border-border text-foreground"
                     />
+                    {passwordError && (
+                      <p className="text-sm text-destructive">
+                        Incorrect password. Please try again.
+                      </p>
+                    )}
                   </div>
                   <Button 
                     type="submit" 
