@@ -1,6 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
+import { useState } from "react";
 
 interface UserAvatarProps {
   photoURL?: string | null;
@@ -10,6 +11,9 @@ interface UserAvatarProps {
 }
 
 const UserAvatar = ({ photoURL, displayName, size = "md", className = "" }: UserAvatarProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   const sizeClasses = {
     sm: "h-6 w-6",
     md: "h-8 w-8", 
@@ -27,20 +31,32 @@ const UserAvatar = ({ photoURL, displayName, size = "md", className = "" }: User
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Hide the image if it fails to load
-    e.currentTarget.style.display = 'none';
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setImageError(false);
   };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImageLoaded(false);
+  };
+
+  // Clean and validate the photo URL
+  const cleanPhotoURL = photoURL?.trim();
+  const hasValidPhoto = cleanPhotoURL && !imageError && (cleanPhotoURL.startsWith('http://') || cleanPhotoURL.startsWith('https://'));
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
-      {photoURL && (
+      {hasValidPhoto && (
         <AvatarImage 
-          src={photoURL} 
+          src={cleanPhotoURL} 
           alt={displayName || "User avatar"}
+          onLoad={handleImageLoad}
           onError={handleImageError}
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
+          className="object-cover"
+          loading="lazy"
         />
       )}
       <AvatarFallback className="bg-muted text-muted-foreground">

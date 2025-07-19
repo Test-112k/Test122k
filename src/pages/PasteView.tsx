@@ -1,16 +1,17 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Copy, Download, Eye, Lock, AlertCircle, FileText, Flag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getPaste, downloadPaste, incrementViewCount, type Paste } from "@/lib/pasteService";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import UserNameWithAchievements from "@/components/UserNameWithAchievements";
+import UserAvatar from "@/components/UserAvatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,59 +30,47 @@ const PasteView = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [authorProfile, setAuthorProfile] = useState<any>(null);
+  const [viewIncremented, setViewIncremented] = useState(false);
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    // Ensure dark mode is always active
     document.documentElement.classList.add("dark");
   }, []);
 
   const fetchPaste = async (passwordAttempt?: string) => {
     if (!id) {
-      console.log('❌ No paste ID provided');
       setError("Invalid paste URL");
       setLoading(false);
       return;
     }
-    
-    let hasIncrementedView = false;
     
     try {
       setLoading(true);
       setError(null);
       setPasswordError(false);
       
-      console.log('🔍 Fetching paste with ID:', id);
-      
       const fetchedPaste = await getPaste(id, passwordAttempt);
       
       if (fetchedPaste) {
-        console.log('Paste fetched successfully:', fetchedPaste);
         setPaste(fetchedPaste);
         setNeedsPassword(false);
         setPasswordError(false);
         
-        // Update page title immediately for better UX
+        // Update page title immediately
         document.title = `${fetchedPaste.title} - Aura Paste`;
         
-        // Load author profile asynchronously without blocking the UI - no auth required
-        if (fetchedPaste.authorUID) {
+        // Load author profile asynchronously
+        if (fetchedPaste.authorUID && !authorProfile) {
           getUserProfile(fetchedPaste.authorUID)
-            .then(profile => {
-              console.log('Author profile loaded:', profile);
-              setAuthorProfile(profile);
-            })
+            .then(profile => setAuthorProfile(profile))
             .catch(error => console.error('Error loading author profile:', error));
         }
         
-        // Increment view count only once per successful fetch
-        if (!hasIncrementedView) {
-          hasIncrementedView = true;
-          console.log('🔢 Incrementing view count for paste:', id);
-          incrementViewCount(id, fetchedPaste.authorUID).catch(error => {
-            console.warn('View count increment failed:', error);
-          });
+        // Increment view count only once
+        if (!viewIncremented) {
+          setViewIncremented(true);
+          incrementViewCount(id, fetchedPaste.authorUID);
         }
       } else {
         setError("Paste not found or has been deleted");
@@ -98,7 +87,7 @@ const PasteView = () => {
       } else if (error.message === 'This paste has expired') {
         setError("This paste has expired and is no longer available.");
       } else {
-        setError(error.message || "Failed to load paste. The paste may be expired or deleted.");
+        setError(error.message || "Failed to load paste.");
       }
     } finally {
       setLoading(false);
@@ -107,7 +96,6 @@ const PasteView = () => {
   };
 
   useEffect(() => {
-    // Set page title early to reduce perceived loading time
     document.title = "Loading... - Aura Paste";
     fetchPaste();
   }, [id]);
@@ -164,23 +152,6 @@ const PasteView = () => {
   const handleDownload = () => {
     if (paste) {
       downloadPaste(paste);
-    }
-  };
-
-  const shareUrl = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: paste?.title || 'Shared Paste',
-          text: 'Check out this paste',
-          url: window.location.href,
-        });
-      } catch (error) {
-        // Fallback to copying URL
-        copyUrl();
-      }
-    } else {
-      copyUrl();
     }
   };
 
@@ -338,15 +309,12 @@ const PasteView = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center">
-                    <Avatar className="w-16 h-16 mx-auto mb-3">
-                      <AvatarImage 
-                        src={authorProfile?.photoURL} 
-                        alt={paste?.authorName || 'Author'} 
-                      />
-                      <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                        {paste?.authorName ? paste.authorName.charAt(0).toUpperCase() : '?'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar 
+                      photoURL={authorProfile?.photoURL} 
+                      displayName={paste?.authorName || 'Author'}
+                      size="lg"
+                      className="mx-auto mb-3"
+                    />
                     <div className="text-lg font-semibold text-foreground mb-3">
                       {paste?.authorUID ? (
                         <UserNameWithAchievements userId={paste.authorUID} userName={paste.authorName} />
@@ -356,7 +324,6 @@ const PasteView = () => {
                     </div>
                   </div>
                   
-                  {/* Show bio for everyone - no auth required */}
                   {authorProfile?.bio && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Bio</h4>
@@ -364,7 +331,6 @@ const PasteView = () => {
                     </div>
                   )}
                   
-                  {/* Show social links for everyone - no auth required */}
                   {(authorProfile?.website || authorProfile?.telegram || authorProfile?.discord) && (
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">Links</h4>
@@ -403,11 +369,9 @@ const PasteView = () => {
                       <div>Created: {(() => {
                         if (!paste?.createdAt) return 'Unknown date';
                         try {
-                          // Handle Firebase Timestamp
                           if (paste.createdAt && typeof paste.createdAt === 'object' && paste.createdAt.toDate) {
                             return paste.createdAt.toDate().toLocaleDateString();
                           }
-                          // Handle ISO string
                           if (typeof paste.createdAt === 'string') {
                             return new Date(paste.createdAt).toLocaleDateString();
                           }
@@ -479,7 +443,7 @@ const PasteView = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  {/* Mobile buttons - placed above the paste content */}
+                  {/* Mobile buttons */}
                   <div className="sm:hidden flex flex-col gap-2 mb-4">
                     <Button variant="outline" size="sm" onClick={copyContent} className="border-border text-foreground hover:bg-muted w-full">
                       <Copy className="h-4 w-4 mr-2" />
