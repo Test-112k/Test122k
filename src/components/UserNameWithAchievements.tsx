@@ -1,43 +1,75 @@
+
 import { useState, useEffect } from 'react';
 import { getUserAchievements, type UserAchievement } from '@/lib/userAchievements';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import UserAvatar from './UserAvatar';
 
 interface UserNameWithAchievementsProps {
   userId?: string | null;
   userName: string;
   className?: string;
+  showAvatar?: boolean;
+  avatarSize?: "sm" | "md" | "lg";
 }
 
-const UserNameWithAchievements = ({ userId, userName, className = "" }: UserNameWithAchievementsProps) => {
+interface UserProfile {
+  photoURL?: string;
+  displayName?: string;
+}
+
+const UserNameWithAchievements = ({ 
+  userId, 
+  userName, 
+  className = "", 
+  showAvatar = false,
+  avatarSize = "sm"
+}: UserNameWithAchievementsProps) => {
   const [achievements, setAchievements] = useState<UserAchievement[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loadAchievements = async () => {
+    const loadUserData = async () => {
       if (!userId) return;
       
       setLoading(true);
       try {
-        const userAchievements = await getUserAchievements(userId);
+        // Load achievements and user profile in parallel
+        const [userAchievements, profileDoc] = await Promise.all([
+          getUserAchievements(userId),
+          getDoc(doc(db, 'users', userId))
+        ]);
+        
         setAchievements(userAchievements);
+        
+        if (profileDoc.exists()) {
+          const profileData = profileDoc.data();
+          setUserProfile({
+            photoURL: profileData.photoURL,
+            displayName: profileData.displayName || userName
+          });
+        }
       } catch (error) {
-        console.error('Error loading user achievements:', error);
+        console.error('Error loading user data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadAchievements();
-  }, [userId]);
+    loadUserData();
+  }, [userId, userName]);
 
   // Get the highest priority achievement
   const topAchievement = achievements[0];
 
-  if (loading) {
-    return <span className={className}>{userName}</span>;
-  }
-
-  if (!topAchievement) {
-    return <span className={className}>{userName}</span>;
+  if (loading && showAvatar) {
+    return (
+      <div className="flex items-center gap-2">
+        <UserAvatar size={avatarSize} />
+        <span className={className}>{userName}</span>
+      </div>
+    );
   }
 
   // Apply achievement styles with enhanced aura effects
@@ -51,16 +83,31 @@ const UserNameWithAchievements = ({ userId, userName, className = "" }: UserName
     active: 'text-blue-400 font-medium pulse-glow-blue'
   };
 
-  const achievementClass = achievementClasses[topAchievement.type] || '';
+  const achievementClass = topAchievement ? achievementClasses[topAchievement.type] || '' : '';
 
-  return (
+  const nameElement = (
     <span 
       className={`${className} ${achievementClass}`}
-      title={`${topAchievement.title}: ${topAchievement.description}`}
+      title={topAchievement ? `${topAchievement.title}: ${topAchievement.description}` : undefined}
     >
       {userName}
     </span>
   );
+
+  if (showAvatar) {
+    return (
+      <div className="flex items-center gap-2">
+        <UserAvatar 
+          photoURL={userProfile?.photoURL} 
+          displayName={userProfile?.displayName || userName}
+          size={avatarSize}
+        />
+        {nameElement}
+      </div>
+    );
+  }
+
+  return nameElement;
 };
 
 export default UserNameWithAchievements;
