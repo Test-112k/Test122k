@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings, Save, User, Mail, Lock, Link, X } from "lucide-react";
+import { Settings, Save, User, Mail, Lock, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import SocialMediaLinks from "./SocialMediaLinks";
 
 const UserProfile = () => {
   const { currentUser, updateUserProfile, updateUserEmail, updateUserPassword, userProfile, refreshUserProfile } = useAuth();
@@ -257,6 +257,20 @@ const UserProfile = () => {
                   placeholder="username#1234 or discord.gg/invite"
                 />
               </div>
+
+              {/* Social Media Links Preview */}
+              {(telegram || discord || website) && (
+                <div className="pt-4 border-t">
+                  <Label>Social Media Links Preview:</Label>
+                  <div className="mt-2">
+                    <SocialMediaLinks 
+                      telegram={telegram} 
+                      discord={discord} 
+                      website={website} 
+                    />
+                  </div>
+                </div>
+              )}
 
               <Button onClick={handleUpdateProfile} disabled={isUpdating} className="w-full">
                 <Save className="h-4 w-4 mr-2" />

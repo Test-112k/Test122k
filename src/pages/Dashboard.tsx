@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,13 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Code, Copy, Download, ExternalLink, Eye, FileText, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, Lock, Globe } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import CustomTemplates from "@/components/CustomTemplates";
 import UserProfile from "@/components/UserProfile";
@@ -27,6 +24,7 @@ interface Paste {
   createdAt: any;
   expiresAt?: any;
   isPasswordProtected?: boolean;
+  viewCount?: number;
 }
 
 const Dashboard = () => {
@@ -47,12 +45,20 @@ const Dashboard = () => {
 
     setLoading(true);
     try {
-      const q = query(collection(db, 'pastes'), where('authorUID', '==', currentUser.uid));
+      // Query all pastes by the user, regardless of visibility
+      const q = query(
+        collection(db, 'pastes'), 
+        where('authorUID', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      );
+      
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const userPastes = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Paste[];
+        
+        console.log('Loaded user pastes:', userPastes);
         setPastes(userPastes);
         setLoading(false);
       });
@@ -90,6 +96,18 @@ const Dashboard = () => {
     navigate(`/edit/${pasteId}`);
   };
 
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Unknown';
+    
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Unknown';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -117,7 +135,7 @@ const Dashboard = () => {
           <TabsContent value="pastes" className="space-y-6">
             <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle>My Pastes</CardTitle>
+                <CardTitle>My Pastes ({pastes.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -128,8 +146,27 @@ const Dashboard = () => {
                   <div className="space-y-3">
                     {pastes.map((paste) => (
                       <div key={paste.id} className="p-4 bg-muted rounded-md">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">{paste.title}</h3>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold">{paste.title}</h3>
+                              <div className="flex items-center gap-1">
+                                {paste.visibility === 'private' ? (
+                                  <Lock className="h-4 w-4 text-muted-foreground" title="Private" />
+                                ) : (
+                                  <Globe className="h-4 w-4 text-muted-foreground" title="Public" />
+                                )}
+                                {paste.isPasswordProtected && (
+                                  <Lock className="h-4 w-4 text-amber-500" title="Password Protected" />
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>Created: {formatDate(paste.createdAt)}</span>
+                              <span>Language: {paste.language}</span>
+                              <span>Views: {paste.viewCount || 0}</span>
+                            </div>
+                          </div>
                           <div className="flex space-x-2">
                             <Button
                               variant="outline"
@@ -144,6 +181,7 @@ const Dashboard = () => {
                               size="sm"
                               onClick={() => handlePasteEdit(paste.id)}
                             >
+                              <Edit className="h-4 w-4 mr-1" />
                               Edit
                             </Button>
                             <Button
@@ -151,13 +189,11 @@ const Dashboard = () => {
                               size="sm"
                               onClick={() => handlePasteDelete(paste.id)}
                             >
+                              <Trash2 className="h-4 w-4 mr-1" />
                               Delete
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Created: {new Date(paste.createdAt?.toDate()).toLocaleDateString()}
-                        </p>
                       </div>
                     ))}
                   </div>
