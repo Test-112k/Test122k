@@ -118,15 +118,15 @@ const AdBanner = ({ position }: AdBannerProps) => {
   const getAdContainerClasses = () => {
     switch (position) {
       case "header":
-        return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-2 md:py-4 mb-4 bg-card/30 border-b border-border";
+        return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-2 md:py-4 mb-4 bg-card/30 border-b border-border relative z-10";
       case "sidebar":
-        return "w-full max-w-[300px] min-h-[270px] flex items-center justify-center p-4 bg-card/30 rounded-lg border border-border mb-4 mx-auto";
+        return "w-full max-w-[300px] min-h-[270px] flex items-center justify-center p-4 bg-card/30 rounded-lg border border-border mb-4 mx-auto relative z-10";
       case "footer":
-        return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-3 md:py-4 mt-8 bg-card/30 border-t border-border";
+        return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-3 md:py-4 mt-8 bg-card/30 border-t border-border relative z-10";
       case "content":
-        return "w-full max-w-[320px] min-h-[60px] flex items-center justify-center py-2 md:py-4 my-4 bg-card/30 rounded-lg border border-border mx-auto";
+        return "w-full max-w-[320px] min-h-[60px] flex items-center justify-center py-2 md:py-4 my-4 bg-card/30 rounded-lg border border-border mx-auto relative z-10";
       default:
-        return "w-full min-h-[60px] flex items-center justify-center py-2";
+        return "w-full min-h-[60px] flex items-center justify-center py-2 relative z-10";
     }
   };
 
@@ -134,10 +134,11 @@ const AdBanner = ({ position }: AdBannerProps) => {
     <div className={getAdContainerClasses()}>
       <div 
         id={`adsterra-${position}`}
-        className="w-full flex items-center justify-center overflow-hidden"
+        className="w-full flex items-center justify-center overflow-hidden relative"
         style={{ 
           minHeight: position === 'sidebar' ? '250px' : '50px',
-          maxWidth: position === 'sidebar' ? '300px' : position === 'content' ? '320px' : '100%'
+          maxWidth: position === 'sidebar' ? '300px' : position === 'content' ? '320px' : '100%',
+          zIndex: 1
         }}
       />
     </div>
