@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -60,15 +59,27 @@ const PasteView = () => {
         // Update page title immediately
         document.title = `${fetchedPaste.title} - Aura Paste`;
         
-        // Load author profile asynchronously
+        // Load author profile asynchronously with better error handling
         if (fetchedPaste.authorUID && !authorProfile) {
+          console.log('📱 Loading author profile for:', fetchedPaste.authorUID);
           getUserProfile(fetchedPaste.authorUID)
-            .then(profile => setAuthorProfile(profile))
-            .catch(error => console.error('Error loading author profile:', error));
+            .then(profile => {
+              console.log('✅ Author profile loaded:', profile);
+              setAuthorProfile(profile);
+            })
+            .catch(error => {
+              console.error('❌ Error loading author profile:', error);
+              // Set a minimal profile to prevent endless loading
+              setAuthorProfile({ 
+                displayName: fetchedPaste.authorName,
+                photoURL: null 
+              });
+            });
         }
         
         // Increment view count only once
         if (!viewIncremented) {
+          console.log('👁️ Incrementing view count...');
           setViewIncremented(true);
           incrementViewCount(id, fetchedPaste.authorUID);
         }
@@ -311,7 +322,7 @@ const PasteView = () => {
                   <div className="text-center">
                     <UserAvatar 
                       photoURL={authorProfile?.photoURL} 
-                      displayName={paste?.authorName || 'Author'}
+                      displayName={paste?.authorName || authorProfile?.displayName || 'Author'}
                       size="lg"
                       className="mx-auto mb-3"
                     />

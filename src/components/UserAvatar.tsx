@@ -1,7 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface UserAvatarProps {
   photoURL?: string | null;
@@ -11,8 +11,8 @@ interface UserAvatarProps {
 }
 
 const UserAvatar = ({ photoURL, displayName, size = "md", className = "" }: UserAvatarProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const sizeClasses = {
     sm: "h-6 w-6",
@@ -26,24 +26,44 @@ const UserAvatar = ({ photoURL, displayName, size = "md", className = "" }: User
     lg: "h-6 w-6"
   };
 
+  // Reset image states when photoURL changes
+  useEffect(() => {
+    setImageError(false);
+    setImageLoaded(false);
+  }, [photoURL]);
+
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "";
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   const handleImageLoad = () => {
+    console.log('✅ Avatar image loaded successfully:', photoURL);
     setImageLoaded(true);
     setImageError(false);
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e: any) => {
+    console.warn('❌ Avatar image failed to load:', photoURL, e);
     setImageError(true);
     setImageLoaded(false);
   };
 
   // Clean and validate the photo URL
   const cleanPhotoURL = photoURL?.trim();
-  const hasValidPhoto = cleanPhotoURL && !imageError && (cleanPhotoURL.startsWith('http://') || cleanPhotoURL.startsWith('https://'));
+  const hasValidPhoto = cleanPhotoURL && 
+    !imageError && 
+    (cleanPhotoURL.startsWith('http://') || 
+     cleanPhotoURL.startsWith('https://') || 
+     cleanPhotoURL.startsWith('data:'));
+
+  console.log('🖼️ Avatar render:', { 
+    photoURL: cleanPhotoURL, 
+    hasValidPhoto, 
+    imageError, 
+    imageLoaded,
+    displayName 
+  });
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
@@ -53,13 +73,10 @@ const UserAvatar = ({ photoURL, displayName, size = "md", className = "" }: User
           alt={displayName || "User avatar"}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          crossOrigin="anonymous"
-          referrerPolicy="no-referrer"
           className="object-cover"
-          loading="lazy"
         />
       )}
-      <AvatarFallback className="bg-muted text-muted-foreground">
+      <AvatarFallback className="bg-muted text-muted-foreground border">
         {displayName ? (
           <span className="text-xs font-medium">{getInitials(displayName)}</span>
         ) : (

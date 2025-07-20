@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, doc, setDoc, getDoc, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, serverTimestamp, updateDoc, increment, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { encryptSensitiveContent, decryptContent, containsSensitiveData } from './encryption';
 import { updateUserStats } from './userAchievements';
@@ -335,24 +335,61 @@ export const updatePaste = async (pasteId: string, updateData: {
 
 export const incrementViewCount = async (pasteId: string, authorUID?: string | null): Promise<void> => {
   try {
-    const pasteRef = doc(db, 'pastes', pasteId);
+    // Get user's IP address (simplified approach)
+    const userAgent = navigator.userAgent;
+    const timestamp = Date.now();
+    const sessionId = `${userAgent}-${Math.floor(timestamp / (1000 * 60 * 60))}`; // Hourly session
     
-    // Increment the view count atomically
-    await updateDoc(pasteRef, {
-      viewCount: increment(1)
-    });
+    console.log('🔄 Attempting to increment view count for paste:', pasteId);
     
-    console.log('✅ View count incremented for paste:', pasteId);
-    
-    // Update user stats if author exists
-    if (authorUID) {
-      try {
-        await updateUserStats(authorUID, 1);
-      } catch (error) {
-        console.warn('Failed to update user stats:', error);
+    // Use transaction to ensure atomic operations
+    await runTransaction(db, async (transaction) => {
+      const pasteRef = doc(db, 'pastes', pasteId);
+      const viewTrackingRef = doc(db, 'viewTracking', `${pasteId}_${sessionId}`);
+      
+      // Check if this session has already viewed this paste
+      const viewTrackingDoc = await transaction.get(viewTrackingRef);
+      
+      if (!viewTrackingDoc.exists()) {
+        // First view from this session, increment counter
+        transaction.update(pasteRef, {
+          viewCount: increment(1)
+        });
+        
+        // Record this view to prevent duplicate counting
+        transaction.set(viewTrackingRef, {
+          pasteId,
+          sessionId,
+          timestamp: serverTimestamp(),
+          authorUID
+        });
+        
+        console.log('✅ View count incremented for paste:', pasteId);
+        
+        // Update user stats if author exists
+        if (authorUID) {
+          try {
+            await updateUserStats(authorUID, 1);
+          } catch (error) {
+            console.warn('Failed to update user stats:', error);
+          }
+        }
+      } else {
+        console.log('ℹ️ View already counted for this session');
       }
-    }
+    });
   } catch (error) {
     console.error('❌ Error incrementing view count:', error);
+    
+    // Fallback: try simple increment without transaction
+    try {
+      const pasteRef = doc(db, 'pastes', pasteId);
+      await updateDoc(pasteRef, {
+        viewCount: increment(1)
+      });
+      console.log('✅ Fallback view count increment successful');
+    } catch (fallbackError) {
+      console.error('❌ Fallback view count increment failed:', fallbackError);
+    }
   }
 };
