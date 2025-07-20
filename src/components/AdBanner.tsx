@@ -44,7 +44,8 @@ const AdBanner = ({ position }: AdBannerProps) => {
     const config = adConfigs[position];
     
     // Create unique container ID for this ad instance
-    const containerId = `adsterra-${position}-${Date.now()}`;
+    const uniqueId = `${position}-${Math.random().toString(36).substr(2, 9)}`;
+    const containerId = `adsterra-${uniqueId}`;
     const adContainer = document.getElementById(`adsterra-${position}`);
     
     if (adContainer && !isLoaded) {
@@ -52,6 +53,35 @@ const AdBanner = ({ position }: AdBannerProps) => {
       
       // Clear any existing ads
       adContainer.innerHTML = '';
+      
+      // Create ad script with inline configuration to avoid conflicts
+      const scriptContent = `
+        (function() {
+          var atOptions_${uniqueId} = {
+            'key': '${config.key}',
+            'format': '${config.format}',
+            'height': ${config.height},
+            'width': ${config.width},
+            'params': {}
+          };
+          
+          // Temporarily set global atOptions for this ad
+          window.atOptions = atOptions_${uniqueId};
+          
+          // Create and append invoke script
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = '//esteemcountryside.com/${config.key}/invoke.js';
+          script.onload = function() {
+            console.log('✅ ${position} ad script loaded successfully');
+          };
+          script.onerror = function() {
+            console.error('❌ Failed to load ${position} ad script');
+            document.getElementById('${containerId}').innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Advertisement Space</div>';
+          };
+          document.getElementById('${containerId}').appendChild(script);
+        })();
+      `;
       
       // Create ad div
       const adDiv = document.createElement('div');
@@ -64,35 +94,14 @@ const AdBanner = ({ position }: AdBannerProps) => {
       adDiv.style.margin = '0 auto';
       adContainer.appendChild(adDiv);
       
-      // Set atOptions globally for this specific ad
-      (window as any).atOptions = {
-        key: config.key,
-        format: config.format,
-        height: config.height,
-        width: config.width,
-        params: config.params
-      };
-
-      // Load Adsterra ad script
+      // Execute the ad script after a short delay
       setTimeout(() => {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = `//esteemcountryside.com/${config.key}/invoke.js`;
-        script.async = true;
-        
-        script.onload = () => {
-          console.log(`✅ ${position} ad script loaded successfully`);
-          setIsLoaded(true);
-        };
-        
-        script.onerror = () => {
-          console.error(`❌ Failed to load ${position} ad script`);
-          // Show fallback content
-          adDiv.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Advertisement Space</div>';
-        };
-        
-        adDiv.appendChild(script);
-      }, 100); // Reduced delay for faster loading
+        const scriptElement = document.createElement('script');
+        scriptElement.type = 'text/javascript';
+        scriptElement.innerHTML = scriptContent;
+        document.head.appendChild(scriptElement);
+        setIsLoaded(true);
+      }, 200);
     }
 
     return () => {
