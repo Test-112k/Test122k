@@ -21,8 +21,8 @@ const AdBanner = ({ position }: AdBannerProps) => {
       sidebar: {
         key: '5c4fccf9169fae315e4826325256daf8', // 300x250 medium rectangle
         format: 'iframe',
-        height: window.innerWidth >= 768 ? 250 : 200,
-        width: window.innerWidth >= 768 ? 300 : 280,
+        height: 250,
+        width: 300,
         params: {}
       },
       footer: {
@@ -35,8 +35,8 @@ const AdBanner = ({ position }: AdBannerProps) => {
       content: {
         key: '138c604a0075f7cbb8208e3b72c0c2d7', // 320x50 mobile banner
         format: 'iframe',
-        height: window.innerWidth >= 768 ? 90 : 50,
-        width: window.innerWidth >= 768 ? 728 : 320,
+        height: 50,
+        width: 320,
         params: {}
       }
     };
@@ -57,10 +57,11 @@ const AdBanner = ({ position }: AdBannerProps) => {
       const adDiv = document.createElement('div');
       adDiv.id = containerId;
       adDiv.style.minHeight = `${config.height}px`;
-      adDiv.style.width = '100%';
+      adDiv.style.width = position === 'sidebar' ? '300px' : '100%';
       adDiv.style.display = 'flex';
       adDiv.style.alignItems = 'center';
       adDiv.style.justifyContent = 'center';
+      adDiv.style.margin = '0 auto';
       adContainer.appendChild(adDiv);
       
       // Set atOptions globally for this specific ad
@@ -87,11 +88,11 @@ const AdBanner = ({ position }: AdBannerProps) => {
         script.onerror = () => {
           console.error(`❌ Failed to load ${position} ad script`);
           // Show fallback content
-          adDiv.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center;">Advertisement</div>';
+          adDiv.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Advertisement Space</div>';
         };
         
         adDiv.appendChild(script);
-      }, 500); // Small delay to ensure DOM is ready
+      }, 100); // Reduced delay for faster loading
     }
 
     return () => {
@@ -110,11 +111,11 @@ const AdBanner = ({ position }: AdBannerProps) => {
       case "header":
         return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-2 md:py-4 mb-4 bg-card/30 border-b border-border";
       case "sidebar":
-        return "w-full min-h-[210px] md:min-h-[270px] flex items-center justify-center p-4 bg-card/30 rounded-lg border border-border mb-4";
+        return "w-full max-w-[300px] min-h-[270px] flex items-center justify-center p-4 bg-card/30 rounded-lg border border-border mb-4 mx-auto";
       case "footer":
         return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-3 md:py-4 mt-8 bg-card/30 border-t border-border";
       case "content":
-        return "w-full min-h-[60px] md:min-h-[100px] flex items-center justify-center py-2 md:py-4 my-4 bg-card/30 rounded-lg border border-border";
+        return "w-full max-w-[320px] min-h-[60px] flex items-center justify-center py-2 md:py-4 my-4 bg-card/30 rounded-lg border border-border mx-auto";
       default:
         return "w-full min-h-[60px] flex items-center justify-center py-2";
     }
@@ -124,8 +125,11 @@ const AdBanner = ({ position }: AdBannerProps) => {
     <div className={getAdContainerClasses()}>
       <div 
         id={`adsterra-${position}`}
-        className="w-full flex items-center justify-center min-h-[50px] overflow-hidden"
-        style={{ minHeight: position === 'sidebar' ? '200px' : '50px' }}
+        className="w-full flex items-center justify-center overflow-hidden"
+        style={{ 
+          minHeight: position === 'sidebar' ? '250px' : '50px',
+          maxWidth: position === 'sidebar' ? '300px' : position === 'content' ? '320px' : '100%'
+        }}
       />
     </div>
   );

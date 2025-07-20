@@ -10,7 +10,9 @@ const PopunderAd = () => {
       
       // Show ad only if not shown in current session
       if (!hasShownInSession) {
-        // Load the popunder script
+        console.log('🎯 Loading popunder ad...');
+        
+        // Load the popunder script with the exact code provided
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = '//esteemcountryside.com/9d/34/41/9d34413f62350743d04423c4096eb699.js';
@@ -19,7 +21,7 @@ const PopunderAd = () => {
         script.onload = () => {
           // Mark as shown for this session
           sessionStorage.setItem(sessionKey, 'true');
-          console.log('🎯 Popunder ad loaded and marked for session');
+          console.log('✅ Popunder ad loaded and marked for session');
         };
         
         script.onerror = () => {
@@ -39,8 +41,8 @@ const PopunderAd = () => {
       }
     };
     
-    // Delay execution to ensure page is fully loaded
-    const timer = setTimeout(checkAndShowAd, 2000);
+    // Delay execution to ensure page is fully loaded and user interaction
+    const timer = setTimeout(checkAndShowAd, 3000);
     
     return () => clearTimeout(timer);
   }, []);

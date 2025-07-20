@@ -17,6 +17,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getUserProfile } from "@/lib/adminService";
+import AdBanner from "@/components/AdBanner";
+import PopunderAd from "@/components/PopunderAd";
 
 const PasteView = () => {
   const { id } = useParams<{ id: string }>();
@@ -212,6 +214,7 @@ const PasteView = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
+        <AdBanner position="header" />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -229,6 +232,7 @@ const PasteView = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
+        <AdBanner position="header" />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto">
             <Card className="bg-card border-border">
@@ -279,6 +283,7 @@ const PasteView = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
+        <AdBanner position="header" />
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive" className="max-w-md mx-auto bg-destructive/10 border-destructive/20">
             <AlertCircle className="h-4 w-4" />
@@ -294,6 +299,7 @@ const PasteView = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
+        <AdBanner position="header" />
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive" className="max-w-md mx-auto bg-destructive/10 border-destructive/20">
             <AlertCircle className="h-4 w-4" />
@@ -307,7 +313,9 @@ const PasteView = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <PopunderAd />
       <Navigation />
+      <AdBanner position="header" />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
@@ -406,10 +414,16 @@ const PasteView = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Sidebar Ad */}
+              <AdBanner position="sidebar" />
             </div>
 
             {/* Paste Content - Right Column */}
             <div className="lg:col-span-2">
+              {/* Content Ad */}
+              <AdBanner position="content" />
+              
               <Card className="bg-card border-border">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -502,6 +516,7 @@ const PasteView = () => {
         </div>
       </div>
       
+      <AdBanner position="footer" />
       <Footer />
     </div>
   );
