@@ -152,12 +152,18 @@ const Dashboard = () => {
                               <h3 className="text-lg font-semibold">{paste.title}</h3>
                               <div className="flex items-center gap-1">
                                 {paste.visibility === 'private' ? (
-                                  <Lock className="h-4 w-4 text-muted-foreground" title="Private" />
+                                  <span title="Private">
+                                    <Lock className="h-4 w-4 text-muted-foreground" />
+                                  </span>
                                 ) : (
-                                  <Globe className="h-4 w-4 text-muted-foreground" title="Public" />
+                                  <span title="Public">
+                                    <Globe className="h-4 w-4 text-muted-foreground" />
+                                  </span>
                                 )}
                                 {paste.isPasswordProtected && (
-                                  <Lock className="h-4 w-4 text-amber-500" title="Password Protected" />
+                                  <span title="Password Protected">
+                                    <Lock className="h-4 w-4 text-amber-500" />
+                                  </span>
                                 )}
                               </div>
                             </div>
