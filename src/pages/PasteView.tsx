@@ -322,7 +322,7 @@ const PasteView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Author Info - Left Column */}
             <div className="lg:col-span-1">
-              <Card className="bg-card border-border sticky top-4">
+              <Card className="bg-card border-border sticky top-4 z-20 mb-4">
                 <CardHeader>
                   <CardTitle className="text-lg text-foreground">Author</CardTitle>
                 </CardHeader>
