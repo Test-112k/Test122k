@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { collection, doc, setDoc, getDoc, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, serverTimestamp, updateDoc, increment, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { encryptSensitiveContent, decryptContent, containsSensitiveData } from './encryption';
@@ -335,10 +335,14 @@ export const updatePaste = async (pasteId: string, updateData: {
 
 export const incrementViewCount = async (pasteId: string, authorUID?: string | null): Promise<void> => {
   try {
-    // Get user's IP address (simplified approach)
+    // Create a session ID based on browser fingerprint and current hour
     const userAgent = navigator.userAgent;
     const timestamp = Date.now();
-    const sessionId = `${userAgent}-${Math.floor(timestamp / (1000 * 60 * 60))}`; // Hourly session
+    const currentUser = auth.currentUser;
+    
+    // More robust session tracking - include user ID if logged in, otherwise use browser fingerprint
+    const sessionIdentifier = currentUser?.uid || btoa(userAgent).substring(0, 20);
+    const sessionId = `${sessionIdentifier}-${Math.floor(timestamp / (1000 * 60 * 60))}`; // Hourly session
     
     console.log('🔄 Attempting to increment view count for paste:', pasteId);
     

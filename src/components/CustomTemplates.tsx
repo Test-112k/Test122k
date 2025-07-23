@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Code, Trash2, Edit, FileText } from "lucide-react";
+import { updateDoc } from 'firebase/firestore';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { db } from '@/lib/firebase';
@@ -33,6 +34,8 @@ const CustomTemplates = ({ onSelectTemplate }: CustomTemplatesProps) => {
   const [templates, setTemplates] = useState<CustomTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<CustomTemplate | null>(null);
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     content: '',
@@ -163,6 +166,59 @@ const CustomTemplates = ({ onSelectTemplate }: CustomTemplatesProps) => {
     }
   };
 
+  const openEditDialog = (template: CustomTemplate) => {
+    setEditingTemplate(template);
+    setNewTemplate({
+      name: template.name,
+      content: template.content,
+      language: template.language,
+      description: template.description || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const updateTemplate = async () => {
+    if (!editingTemplate || !currentUser) {
+      return;
+    }
+    
+    if (!newTemplate.name.trim() || !newTemplate.content.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in name and content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const templateRef = doc(db, 'templates', editingTemplate.id);
+      await updateDoc(templateRef, {
+        name: newTemplate.name,
+        content: newTemplate.content,
+        language: newTemplate.language,
+        description: newTemplate.description
+      });
+
+      toast({
+        title: "Success",
+        description: "Template updated successfully!",
+      });
+
+      setNewTemplate({ name: '', content: '', language: 'text', description: '' });
+      setShowEditDialog(false);
+      setEditingTemplate(null);
+      loadUserTemplates();
+    } catch (error) {
+      console.error('Error updating template:', error);
+      toast({
+        title: "Error",
+        description: `Failed to update template: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!currentUser) {
     return null;
   }
@@ -234,6 +290,63 @@ const CustomTemplates = ({ onSelectTemplate }: CustomTemplatesProps) => {
               </div>
             </DialogContent>
           </Dialog>
+          
+          {/* Edit Template Dialog */}
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="bg-gray-900 border-gray-700 text-white">
+              <DialogHeader>
+                <DialogTitle>Edit Template</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Template name"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
+                  className="bg-gray-800 border-gray-700"
+                />
+                <Input
+                  placeholder="Description (optional)"
+                  value={newTemplate.description}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, description: e.target.value }))}
+                  className="bg-gray-800 border-gray-700"
+                />
+                <Select
+                  value={newTemplate.language}
+                  onValueChange={(value) => setNewTemplate(prev => ({ ...prev, language: value }))}
+                >
+                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="text">Plain Text</SelectItem>
+                    <SelectItem value="javascript">JavaScript</SelectItem>
+                    <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="html">HTML</SelectItem>
+                    <SelectItem value="css">CSS</SelectItem>
+                    <SelectItem value="json">JSON</SelectItem>
+                    <SelectItem value="typescript">TypeScript</SelectItem>
+                    <SelectItem value="php">PHP</SelectItem>
+                    <SelectItem value="java">Java</SelectItem>
+                    <SelectItem value="cpp">C++</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Textarea
+                  placeholder="Template content"
+                  value={newTemplate.content}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
+                  className="bg-gray-800 border-gray-700 min-h-[200px]"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={updateTemplate} className="bg-green-600 hover:bg-green-700">
+                    Update Template
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowEditDialog(false)} className="border-gray-700">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -282,6 +395,14 @@ const CustomTemplates = ({ onSelectTemplate }: CustomTemplatesProps) => {
                         <Code className="h-3 w-3" />
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEditDialog(template)}
+                      className="text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
