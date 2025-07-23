@@ -8,11 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Code, Trash2, Edit, FileText } from "lucide-react";
-import { updateDoc } from 'firebase/firestore';
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { db } from '@/lib/firebase';
-import { collection, doc, setDoc, getDocs, query, where, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, query, where, deleteDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 interface CustomTemplate {
   id: string;
