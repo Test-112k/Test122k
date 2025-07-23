@@ -75,10 +75,13 @@ const AdBanner = ({ position }: AdBannerProps) => {
           script.onload = function() {
             console.log('✅ ${position} ad script loaded successfully');
           };
-          script.onerror = function() {
-            console.error('❌ Failed to load ${position} ad script');
-            document.getElementById('${containerId}').innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">Advertisement Space</div>';
-          };
+           script.onerror = function() {
+             console.error('❌ Failed to load ${position} ad script');
+             var fallbackDiv = document.getElementById('${containerId}');
+             if (fallbackDiv) {
+               fallbackDiv.innerHTML = '<div style="background: #f8f9fa; border: 1px dashed #dee2e6; color: #6c757d; font-size: 12px; text-align: center; padding: 20px; border-radius: 4px;">Advertisement Space</div>';
+             }
+           };
           document.getElementById('${containerId}').appendChild(script);
         })();
       `;

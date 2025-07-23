@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Code, Users, Clock, Copy, Download, ExternalLink, Eye, AlertCircle, Lock } from "lucide-react";
+import { Code, Users, Clock, Copy, Download, ExternalLink, Eye, AlertCircle, Lock, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { createPaste, downloadPaste } from "@/lib/pasteService";
@@ -397,10 +397,15 @@ const Index = () => {
                 <Card className="pulse-glow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-2xl text-green-600">✓ Paste Created Successfully!</CardTitle>
-                      <Button variant="outline" onClick={resetForm} className="hover-scale">
-                        Create Another
-                      </Button>
+                       <CardTitle className="text-2xl text-green-600">✓ Paste Created Successfully!</CardTitle>
+                       <Button 
+                         variant="default" 
+                         onClick={resetForm} 
+                         className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-2"
+                       >
+                         <Plus className="h-4 w-4 mr-2" />
+                         Create Another Paste
+                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>

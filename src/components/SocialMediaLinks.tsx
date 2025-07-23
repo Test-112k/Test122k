@@ -23,15 +23,29 @@ const SocialMediaLinks = ({ telegram, discord, website, className = "" }: Social
   };
 
   const formatDiscordUrl = (discord: string) => {
+    // Handle full URLs
     if (discord.startsWith('https://discord.gg/') || discord.startsWith('http://discord.gg/')) {
       return discord;
-    }
-    if (discord.startsWith('discord.gg/')) {
-      return `https://${discord}`;
     }
     if (discord.startsWith('https://discord.com/') || discord.startsWith('http://discord.com/')) {
       return discord;
     }
+    
+    // Handle partial URLs
+    if (discord.startsWith('discord.gg/')) {
+      return `https://${discord}`;
+    }
+    
+    // Handle invite codes (just the code part)
+    if (discord.match(/^[a-zA-Z0-9]+$/)) {
+      return `https://discord.gg/${discord}`;
+    }
+    
+    // Handle discord.com links without https
+    if (discord.startsWith('discord.com/')) {
+      return `https://${discord}`;
+    }
+    
     return null; // For username#1234 format, we can't create a direct link
   };
 
