@@ -9,31 +9,31 @@ const AdBanner = ({ position }: AdBannerProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Different ad configurations for different positions with responsive sizing
+    // All ad codes exactly as provided by user - properly separated and configured
     const adConfigs = {
       header: {
-        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard
+        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard - user provided code
         format: 'iframe',
         height: window.innerWidth >= 768 ? 90 : 50,
         width: window.innerWidth >= 768 ? 728 : 320,
         params: {}
       },
       sidebar: {
-        key: '5c4fccf9169fae315e4826325256daf8', // 300x250 medium rectangle
+        key: '5c4fccf9169fae315e4826325256daf8', // 300x250 medium rectangle - user provided code
         format: 'iframe',
         height: 250,
         width: 300,
         params: {}
       },
       footer: {
-        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard  
+        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard - same as header
         format: 'iframe',
         height: window.innerWidth >= 768 ? 90 : 50,
         width: window.innerWidth >= 768 ? 728 : 320,
         params: {}
       },
       content: {
-        key: '138c604a0075f7cbb8208e3b72c0c2d7', // 320x50 mobile banner
+        key: '138c604a0075f7cbb8208e3b72c0c2d7', // 320x50 mobile banner - user provided code
         format: 'iframe',
         height: 50,
         width: 320,
@@ -75,13 +75,13 @@ const AdBanner = ({ position }: AdBannerProps) => {
           script.onload = function() {
             console.log('✅ ${position} ad script loaded successfully');
           };
-           script.onerror = function() {
-             console.error('❌ Failed to load ${position} ad script');
-             var fallbackDiv = document.getElementById('${containerId}');
-             if (fallbackDiv) {
-               fallbackDiv.innerHTML = '<div style="background: #f8f9fa; border: 1px dashed #dee2e6; color: #6c757d; font-size: 12px; text-align: center; padding: 20px; border-radius: 4px;">Advertisement Space</div>';
-             }
-           };
+            script.onerror = function() {
+              console.error('❌ Failed to load ${position} ad script');
+              var fallbackDiv = document.getElementById('${containerId}');
+              if (fallbackDiv) {
+                fallbackDiv.innerHTML = '<div style="background: hsl(var(--card)); border: 1px dashed hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 12px; text-align: center; padding: 20px; border-radius: 4px; min-height: ${config.height}px;">Advertisement Loading...</div>';
+              }
+            };
           document.getElementById('${containerId}').appendChild(script);
         })();
       `;

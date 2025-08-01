@@ -12,7 +12,7 @@ const PopunderAd = () => {
       if (!hasShownInSession) {
         console.log('🎯 Loading popunder ad...');
         
-        // Load the popunder script with the exact code provided
+        // Load the popunder script - exact user provided code: 9d34413f62350743d04423c4096eb699.js
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = '//esteemcountryside.com/9d/34/41/9d34413f62350743d04423c4096eb699.js';
