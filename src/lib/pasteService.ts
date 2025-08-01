@@ -335,16 +335,25 @@ export const updatePaste = async (pasteId: string, updateData: {
 
 export const incrementViewCount = async (pasteId: string, authorUID?: string | null): Promise<void> => {
   try {
-    // Create a session ID based on browser fingerprint and current hour
+    // Create a more robust session ID that works for guests and logged-in users
     const userAgent = navigator.userAgent;
     const timestamp = Date.now();
     const currentUser = auth.currentUser;
     
-    // More robust session tracking - include user ID if logged in, otherwise use browser fingerprint
-    const sessionIdentifier = currentUser?.uid || btoa(userAgent).substring(0, 20);
+    // Create unique identifier for guests using browser fingerprint + IP simulation
+    const guestFingerprint = btoa(
+      userAgent + 
+      navigator.language + 
+      screen.width + 
+      screen.height + 
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    ).substring(0, 20);
+    
+    // Use user ID for logged-in users, guest fingerprint for anonymous users
+    const sessionIdentifier = currentUser?.uid || `guest_${guestFingerprint}`;
     const sessionId = `${sessionIdentifier}-${Math.floor(timestamp / (1000 * 60 * 60))}`; // Hourly session
     
-    console.log('🔄 Attempting to increment view count for paste:', pasteId);
+    console.log('🔄 Attempting to increment view count for paste:', pasteId, 'Session:', sessionIdentifier);
     
     // Use transaction to ensure atomic operations
     await runTransaction(db, async (transaction) => {
@@ -365,10 +374,12 @@ export const incrementViewCount = async (pasteId: string, authorUID?: string | n
           pasteId,
           sessionId,
           timestamp: serverTimestamp(),
-          authorUID
+          authorUID,
+          isGuest: !currentUser,
+          userAgent: userAgent.substring(0, 100) // Store first 100 chars for analytics
         });
         
-        console.log('✅ View count incremented for paste:', pasteId);
+        console.log('✅ View count incremented for paste:', pasteId, currentUser ? '(logged-in user)' : '(guest)');
         
         // Update user stats if author exists
         if (authorUID) {

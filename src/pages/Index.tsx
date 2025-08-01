@@ -77,10 +77,8 @@ const Index = () => {
         description: "Your paste has been created successfully.",
       });
 
-      // Redirect to the created paste to view it
-      setTimeout(() => {
-        navigate(`/paste/${paste.id}`);
-      }, 1500);
+      // Remove the automatic redirect - let user stay on success page
+      // User can manually navigate using the "View Paste" button
     } catch (error: any) {
       console.error('❌ Error creating paste from UI:', error);
       
