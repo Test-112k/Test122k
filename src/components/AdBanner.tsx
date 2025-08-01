@@ -1,6 +1,13 @@
 
 import { useEffect, useState } from "react";
 
+// Extend Window interface for atOptions
+declare global {
+  interface Window {
+    atOptions: any;
+  }
+}
+
 interface AdBannerProps {
   position: "header" | "sidebar" | "footer" | "content";
 }
@@ -42,78 +49,78 @@ const AdBanner = ({ position }: AdBannerProps) => {
     };
 
     const config = adConfigs[position];
-    
-    // Create unique container ID for this ad instance
-    const uniqueId = `${position}-${Math.random().toString(36).substr(2, 9)}`;
-    const containerId = `adsterra-${uniqueId}`;
     const adContainer = document.getElementById(`adsterra-${position}`);
     
     if (adContainer && !isLoaded) {
       console.log(`🎯 Loading ${position} ad with config:`, config);
       
-      // Clear any existing ads
+      // Clear any existing content
       adContainer.innerHTML = '';
       
-      // Create ad script with inline configuration to avoid conflicts
-      const scriptContent = `
-        (function() {
-          var atOptions_${uniqueId} = {
-            'key': '${config.key}',
-            'format': '${config.format}',
-            'height': ${config.height},
-            'width': ${config.width},
-            'params': {}
-          };
-          
-          // Temporarily set global atOptions for this ad
-          window.atOptions = atOptions_${uniqueId};
-          
-          // Create and append invoke script
-          var script = document.createElement('script');
-          script.type = 'text/javascript';
-          script.src = '//esteemcountryside.com/${config.key}/invoke.js';
-          script.onload = function() {
-            console.log('✅ ${position} ad script loaded successfully');
-          };
-            script.onerror = function() {
-              console.error('❌ Failed to load ${position} ad script');
-              var fallbackDiv = document.getElementById('${containerId}');
-              if (fallbackDiv) {
-                fallbackDiv.innerHTML = '<div style="background: hsl(var(--card)); border: 1px dashed hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 12px; text-align: center; padding: 20px; border-radius: 4px; min-height: ${config.height}px;">Advertisement Loading...</div>';
-              }
-            };
-          document.getElementById('${containerId}').appendChild(script);
-        })();
+      // Create visible placeholder first
+      const placeholder = document.createElement('div');
+      placeholder.style.cssText = `
+        background: hsl(var(--muted));
+        border: 2px dashed hsl(var(--border));
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        min-height: ${config.height}px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        z-index: 10;
+        position: relative;
       `;
+      placeholder.innerHTML = `Loading ${position} Advertisement...`;
+      adContainer.appendChild(placeholder);
       
-      // Create ad div
-      const adDiv = document.createElement('div');
-      adDiv.id = containerId;
-      adDiv.style.minHeight = `${config.height}px`;
-      adDiv.style.width = position === 'sidebar' ? '300px' : '100%';
-      adDiv.style.display = 'flex';
-      adDiv.style.alignItems = 'center';
-      adDiv.style.justifyContent = 'center';
-      adDiv.style.margin = '0 auto';
-      adContainer.appendChild(adDiv);
+      // Set global atOptions for this ad
+      window.atOptions = {
+        'key': config.key,
+        'format': config.format,
+        'height': config.height,
+        'width': config.width,
+        'params': {}
+      };
       
-      // Execute the ad script after a short delay
-      setTimeout(() => {
-        const scriptElement = document.createElement('script');
-        scriptElement.type = 'text/javascript';
-        scriptElement.innerHTML = scriptContent;
-        document.head.appendChild(scriptElement);
-        setIsLoaded(true);
-      }, 200);
+      // Create and load the ad script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = `//esteemcountryside.com/${config.key}/invoke.js`;
+      script.async = true;
+      
+      script.onload = () => {
+        console.log(`✅ ${position} ad script loaded successfully`);
+        // Remove placeholder after successful load
+        setTimeout(() => {
+          if (placeholder && placeholder.parentNode) {
+            placeholder.remove();
+          }
+        }, 2000);
+      };
+      
+      script.onerror = () => {
+        console.error(`❌ Failed to load ${position} ad script`);
+        placeholder.innerHTML = `Advertisement Unavailable`;
+        placeholder.style.color = 'hsl(var(--muted-foreground))';
+      };
+      
+      // Append script to container
+      adContainer.appendChild(script);
+      setIsLoaded(true);
     }
 
     return () => {
-      // Cleanup on unmount
+      // Cleanup on unmount - remove any ad scripts
+      const adContainer = document.getElementById(`adsterra-${position}`);
       if (adContainer) {
-        const existingAd = adContainer.querySelector(`#${containerId}`);
-        if (existingAd) {
-          existingAd.remove();
-        }
+        const scripts = adContainer.querySelectorAll('script');
+        scripts.forEach(script => script.remove());
       }
     };
   }, [position, isLoaded]);
