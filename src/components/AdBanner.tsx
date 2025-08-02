@@ -16,7 +16,7 @@ const AdBanner = ({ position }: AdBannerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Delay ad loading to improve page performance
+    // Immediate ad loading for better visibility
     const loadAd = () => {
       const adConfigs = {
         header: {
@@ -57,34 +57,7 @@ const AdBanner = ({ position }: AdBannerProps) => {
       // Clear any existing content
       containerRef.current.innerHTML = '';
       
-      // Create visible placeholder that ensures ads are visible
-      const placeholder = document.createElement('div');
-      placeholder.style.cssText = `
-        background: linear-gradient(45deg, hsl(var(--muted)) 0%, hsl(var(--card)) 100%);
-        border: 1px solid hsl(var(--border));
-        color: hsl(var(--foreground));
-        font-size: 12px;
-        text-align: center;
-        padding: 10px;
-        border-radius: 6px;
-        min-height: ${config.height}px;
-        width: ${config.width}px;
-        max-width: 100%;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        font-weight: 500;
-        z-index: 1000;
-        position: relative;
-        margin: 0 auto;
-        box-sizing: border-box;
-        opacity: 1;
-        visibility: visible;
-      `;
-      placeholder.innerHTML = `${position.toUpperCase()} AD (${config.width}x${config.height})`;
-      containerRef.current.appendChild(placeholder);
-      
-      // Set global atOptions with unique identifier
+      // Set global atOptions before creating script
       window.atOptions = {
         'key': config.key,
         'format': config.format,
@@ -93,48 +66,76 @@ const AdBanner = ({ position }: AdBannerProps) => {
         'params': {}
       };
       
-      // Create ad script with unique ID
+      // Create ad script first
       const script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = `//esteemcountryside.com/${config.key}/invoke.js?t=${Date.now()}`;
+      script.src = `//esteemcountryside.com/${config.key}/invoke.js`;
       script.async = true;
-      script.id = `ad-script-${position}-${Date.now()}`;
       
       script.onload = () => {
-        console.log(`✅ ${position} ad script loaded - checking for ad content`);
+        console.log(`✅ ${position} ad script loaded successfully`);
         
-        // Check if ad loaded after 3 seconds
+        // Check for ad content after 2 seconds
         setTimeout(() => {
           const hasAdContent = containerRef.current?.querySelector('iframe') || 
                               containerRef.current?.querySelector('ins') ||
-                              containerRef.current?.querySelector('[data-ad]');
+                              containerRef.current?.querySelector('[data-ad]') ||
+                              containerRef.current?.children.length > 1;
           
-          if (hasAdContent) {
-            console.log(`✅ ${position} ad content detected, removing placeholder`);
-            placeholder.remove();
-          } else {
-            console.log(`⚠️ No ${position} ad content found, keeping placeholder`);
-            placeholder.innerHTML = `${position.toUpperCase()} AD SLOT (No ads available)`;
-            placeholder.style.opacity = '0.7';
+          if (!hasAdContent) {
+            console.log(`⚠️ No ${position} ad content found, showing visible placeholder`);
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = `
+              background: linear-gradient(135deg, hsl(var(--primary)/0.1) 0%, hsl(var(--accent)/0.1) 100%);
+              border: 1px solid hsl(var(--border));
+              color: hsl(var(--muted-foreground));
+              font-size: 12px;
+              text-align: center;
+              padding: 8px;
+              border-radius: 6px;
+              min-height: ${config.height}px;
+              width: 100%;
+              display: flex !important;
+              align-items: center;
+              justify-content: center;
+              font-weight: 500;
+              opacity: 0.8;
+            `;
+            placeholder.innerHTML = `${position.toUpperCase()} AD (${config.width}×${config.height})`;
+            containerRef.current?.appendChild(placeholder);
           }
-        }, 3000);
+        }, 2000);
       };
       
       script.onerror = () => {
         console.error(`❌ Failed to load ${position} ad script`);
-        placeholder.innerHTML = `${position.toUpperCase()} AD ERROR`;
-        placeholder.style.borderColor = 'hsl(var(--destructive))';
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+          background: hsl(var(--destructive)/0.1);
+          border: 1px solid hsl(var(--destructive)/0.3);
+          color: hsl(var(--destructive));
+          font-size: 12px;
+          text-align: center;
+          padding: 8px;
+          border-radius: 6px;
+          min-height: ${config.height}px;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `;
+        errorDiv.innerHTML = `AD ERROR - ${position}`;
+        containerRef.current?.appendChild(errorDiv);
       };
       
       // Append script to container
       containerRef.current.appendChild(script);
     };
 
-    // Delay ad loading by 1 second to improve initial page load
-    const timer = setTimeout(loadAd, 1000);
+    // Load immediately for better UX
+    loadAd();
     
     return () => {
-      clearTimeout(timer);
       if (containerRef.current) {
         const scripts = containerRef.current.querySelectorAll('script');
         scripts.forEach(script => script.remove());
