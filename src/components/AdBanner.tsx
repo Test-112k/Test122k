@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 // Extend Window interface for atOptions
 declare global {
@@ -13,72 +13,78 @@ interface AdBannerProps {
 }
 
 const AdBanner = ({ position }: AdBannerProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // All ad codes exactly as provided by user - properly separated and configured
-    const adConfigs = {
-      header: {
-        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard - user provided code
-        format: 'iframe',
-        height: window.innerWidth >= 768 ? 90 : 50,
-        width: window.innerWidth >= 768 ? 728 : 320,
-        params: {}
-      },
-      sidebar: {
-        key: '5c4fccf9169fae315e4826325256daf8', // 300x250 medium rectangle - user provided code
-        format: 'iframe',
-        height: 250,
-        width: 300,
-        params: {}
-      },
-      footer: {
-        key: '716ec023455c9639f2bf7e298fe9e3b8', // 728x90 leaderboard - same as header
-        format: 'iframe',
-        height: window.innerWidth >= 768 ? 90 : 50,
-        width: window.innerWidth >= 768 ? 728 : 320,
-        params: {}
-      },
-      content: {
-        key: '138c604a0075f7cbb8208e3b72c0c2d7', // 320x50 mobile banner - user provided code
-        format: 'iframe',
-        height: 50,
-        width: 320,
-        params: {}
-      }
-    };
+    // Delay ad loading to improve page performance
+    const loadAd = () => {
+      const adConfigs = {
+        header: {
+          key: '716ec023455c9639f2bf7e298fe9e3b8',
+          format: 'iframe',
+          height: window.innerWidth >= 768 ? 90 : 50,
+          width: window.innerWidth >= 768 ? 728 : 320,
+          params: {}
+        },
+        sidebar: {
+          key: '5c4fccf9169fae315e4826325256daf8',
+          format: 'iframe',
+          height: 250,
+          width: 300,
+          params: {}
+        },
+        footer: {
+          key: '716ec023455c9639f2bf7e298fe9e3b8',
+          format: 'iframe',
+          height: window.innerWidth >= 768 ? 90 : 50,
+          width: window.innerWidth >= 768 ? 728 : 320,
+          params: {}
+        },
+        content: {
+          key: '138c604a0075f7cbb8208e3b72c0c2d7',
+          format: 'iframe',
+          height: 50,
+          width: 320,
+          params: {}
+        }
+      };
 
-    const config = adConfigs[position];
-    const adContainer = document.getElementById(`adsterra-${position}`);
-    
-    if (adContainer) {
+      const config = adConfigs[position];
+      if (!containerRef.current) return;
+
       console.log(`🎯 Loading ${position} ad with config:`, config);
       
       // Clear any existing content
-      adContainer.innerHTML = '';
+      containerRef.current.innerHTML = '';
       
-      // Create visible placeholder first
+      // Create visible placeholder that ensures ads are visible
       const placeholder = document.createElement('div');
       placeholder.style.cssText = `
-        background: hsl(var(--muted));
-        border: 2px dashed hsl(var(--border));
+        background: linear-gradient(45deg, hsl(var(--muted)) 0%, hsl(var(--card)) 100%);
+        border: 1px solid hsl(var(--border));
         color: hsl(var(--foreground));
-        font-size: 14px;
+        font-size: 12px;
         text-align: center;
-        padding: 20px;
-        border-radius: 8px;
+        padding: 10px;
+        border-radius: 6px;
         min-height: ${config.height}px;
-        width: 100%;
-        display: flex;
+        width: ${config.width}px;
+        max-width: 100%;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         font-weight: 500;
-        z-index: 10;
+        z-index: 1000;
         position: relative;
+        margin: 0 auto;
+        box-sizing: border-box;
+        opacity: 1;
+        visibility: visible;
       `;
-      placeholder.innerHTML = `Loading ${position} Advertisement...`;
-      adContainer.appendChild(placeholder);
+      placeholder.innerHTML = `${position.toUpperCase()} AD (${config.width}x${config.height})`;
+      containerRef.current.appendChild(placeholder);
       
-      // Set global atOptions for this ad
+      // Set global atOptions with unique identifier
       window.atOptions = {
         'key': config.key,
         'format': config.format,
@@ -87,37 +93,50 @@ const AdBanner = ({ position }: AdBannerProps) => {
         'params': {}
       };
       
-      // Create and load the ad script
+      // Create ad script with unique ID
       const script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = `//esteemcountryside.com/${config.key}/invoke.js`;
+      script.src = `//esteemcountryside.com/${config.key}/invoke.js?t=${Date.now()}`;
       script.async = true;
+      script.id = `ad-script-${position}-${Date.now()}`;
       
       script.onload = () => {
-        console.log(`✅ ${position} ad script loaded successfully`);
-        // Remove placeholder after successful load
+        console.log(`✅ ${position} ad script loaded - checking for ad content`);
+        
+        // Check if ad loaded after 3 seconds
         setTimeout(() => {
-          if (placeholder && placeholder.parentNode) {
+          const hasAdContent = containerRef.current?.querySelector('iframe') || 
+                              containerRef.current?.querySelector('ins') ||
+                              containerRef.current?.querySelector('[data-ad]');
+          
+          if (hasAdContent) {
+            console.log(`✅ ${position} ad content detected, removing placeholder`);
             placeholder.remove();
+          } else {
+            console.log(`⚠️ No ${position} ad content found, keeping placeholder`);
+            placeholder.innerHTML = `${position.toUpperCase()} AD SLOT (No ads available)`;
+            placeholder.style.opacity = '0.7';
           }
-        }, 2000);
+        }, 3000);
       };
       
       script.onerror = () => {
         console.error(`❌ Failed to load ${position} ad script`);
-        placeholder.innerHTML = `Advertisement Unavailable`;
-        placeholder.style.color = 'hsl(var(--muted-foreground))';
+        placeholder.innerHTML = `${position.toUpperCase()} AD ERROR`;
+        placeholder.style.borderColor = 'hsl(var(--destructive))';
       };
       
       // Append script to container
-      adContainer.appendChild(script);
-    }
+      containerRef.current.appendChild(script);
+    };
 
+    // Delay ad loading by 1 second to improve initial page load
+    const timer = setTimeout(loadAd, 1000);
+    
     return () => {
-      // Cleanup on unmount - remove any ad scripts
-      const adContainer = document.getElementById(`adsterra-${position}`);
-      if (adContainer) {
-        const scripts = adContainer.querySelectorAll('script');
+      clearTimeout(timer);
+      if (containerRef.current) {
+        const scripts = containerRef.current.querySelectorAll('script');
         scripts.forEach(script => script.remove());
       }
     };
@@ -141,6 +160,7 @@ const AdBanner = ({ position }: AdBannerProps) => {
   return (
     <div className={getAdContainerClasses()}>
       <div 
+        ref={containerRef}
         id={`adsterra-${position}`}
         className="w-full flex items-center justify-center overflow-hidden relative"
         style={{ 
