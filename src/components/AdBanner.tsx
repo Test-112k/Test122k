@@ -13,7 +13,6 @@ interface AdBannerProps {
 }
 
 const AdBanner = ({ position }: AdBannerProps) => {
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     // All ad codes exactly as provided by user - properly separated and configured
@@ -51,7 +50,7 @@ const AdBanner = ({ position }: AdBannerProps) => {
     const config = adConfigs[position];
     const adContainer = document.getElementById(`adsterra-${position}`);
     
-    if (adContainer && !isLoaded) {
+    if (adContainer) {
       console.log(`🎯 Loading ${position} ad with config:`, config);
       
       // Clear any existing content
@@ -112,7 +111,6 @@ const AdBanner = ({ position }: AdBannerProps) => {
       
       // Append script to container
       adContainer.appendChild(script);
-      setIsLoaded(true);
     }
 
     return () => {
@@ -123,7 +121,7 @@ const AdBanner = ({ position }: AdBannerProps) => {
         scripts.forEach(script => script.remove());
       }
     };
-  }, [position, isLoaded]);
+  }, [position]);
 
   const getAdContainerClasses = () => {
     switch (position) {
