@@ -75,79 +75,36 @@ const AdBanner = ({ position }: AdBannerProps) => {
       script.onload = () => {
         console.log(`✅ ${position} ad script loaded successfully`);
         
-        // For sidebar ads, ensure they're always visible
-        if (position === 'sidebar') {
-          setTimeout(() => {
-            const hasAdContent = containerRef.current?.querySelector('iframe') || 
-                                containerRef.current?.querySelector('ins') ||
-                                containerRef.current?.querySelector('[data-ad]') ||
-                                containerRef.current?.children.length > 1;
-            
-            if (!hasAdContent) {
-              console.log(`⚠️ No ${position} ad content found, creating prominent fallback`);
-              const fallback = document.createElement('div');
-              fallback.style.cssText = `
-                background: linear-gradient(135deg, hsl(var(--primary)/0.1) 0%, hsl(var(--accent)/0.1) 100%);
-                border: 2px solid hsl(var(--primary)/0.3);
-                color: hsl(var(--primary));
-                font-size: 14px;
-                font-weight: 600;
-                text-align: center;
-                padding: 20px;
-                border-radius: 8px;
-                min-height: ${config.height}px;
-                width: ${config.width}px;
-                max-width: 100%;
-                display: flex !important;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                margin: 0 auto;
-                box-shadow: 0 4px 12px hsl(var(--primary)/0.1);
-              `;
-              fallback.innerHTML = `
-                <div style="font-size: 16px;">📢 SIDEBAR AD</div>
-                <div style="font-size: 12px; opacity: 0.8;">${config.width} × ${config.height}</div>
-                <div style="font-size: 10px; opacity: 0.6;">Key: ${config.key}</div>
-              `;
-              containerRef.current?.appendChild(fallback);
-            } else {
-              console.log(`✅ ${position} ad content detected and visible`);
-            }
-          }, 1500);
-        } else {
-          // For other ads, use simpler fallback
-          setTimeout(() => {
-            const hasAdContent = containerRef.current?.querySelector('iframe') || 
-                                containerRef.current?.querySelector('ins') ||
-                                containerRef.current?.querySelector('[data-ad]') ||
-                                containerRef.current?.children.length > 1;
-            
-            if (!hasAdContent) {
-              console.log(`⚠️ No ${position} ad content found, showing placeholder`);
-              const placeholder = document.createElement('div');
-              placeholder.style.cssText = `
-                background: linear-gradient(135deg, hsl(var(--primary)/0.05) 0%, hsl(var(--accent)/0.05) 100%);
-                border: 1px solid hsl(var(--border));
-                color: hsl(var(--muted-foreground));
-                font-size: 12px;
-                text-align: center;
-                padding: 8px;
-                border-radius: 6px;
-                min-height: ${config.height}px;
-                width: 100%;
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                font-weight: 500;
-                opacity: 0.7;
-              `;
-              placeholder.innerHTML = `${position.toUpperCase()} AD (${config.width}×${config.height})`;
-              containerRef.current?.appendChild(placeholder);
-            }
-          }, 1500);
-        }
+        // Check for ad content after 2 seconds
+        setTimeout(() => {
+          const hasAdContent = containerRef.current?.querySelector('iframe') || 
+                              containerRef.current?.querySelector('ins') ||
+                              containerRef.current?.querySelector('[data-ad]') ||
+                              containerRef.current?.children.length > 1;
+          
+          if (!hasAdContent) {
+            console.log(`⚠️ No ${position} ad content found, showing visible placeholder`);
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = `
+              background: linear-gradient(135deg, hsl(var(--primary)/0.1) 0%, hsl(var(--accent)/0.1) 100%);
+              border: 1px solid hsl(var(--border));
+              color: hsl(var(--muted-foreground));
+              font-size: 12px;
+              text-align: center;
+              padding: 8px;
+              border-radius: 6px;
+              min-height: ${config.height}px;
+              width: 100%;
+              display: flex !important;
+              align-items: center;
+              justify-content: center;
+              font-weight: 500;
+              opacity: 0.8;
+            `;
+            placeholder.innerHTML = `${position.toUpperCase()} AD (${config.width}×${config.height})`;
+            containerRef.current?.appendChild(placeholder);
+          }
+        }, 2000);
       };
       
       script.onerror = () => {
